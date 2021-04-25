@@ -1,0 +1,229 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+import java.net.*;
+
+public class Driver extends JComponent {
+    private static String[] userInputs;
+    private static PrintWriter writer;
+
+    JButton loginButton;
+    JButton signupButton;
+
+    /* action listener for buttons */
+    ActionListener actionListener = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() == loginButton) {
+                login();
+            }
+            if (e.getSource() == signupButton) {
+                signup();
+            }
+        }
+    };
+
+    public static String[] login() {
+        JTextField username = new JTextField();
+        JTextField password = new JTextField();
+
+        Object[] userAndPass = {
+                "Username:", username,
+                "Password:", password
+        };
+
+        JOptionPane.showConfirmDialog(null, userAndPass,
+                "BaceDoge", JOptionPane.DEFAULT_OPTION);
+
+        String enteredUsername = username.getText();
+        String enteredPassword = password.getText();
+
+        String[] enteredUsernameAndPassword = new String[2];
+        enteredUsernameAndPassword[0] = enteredUsername;
+        enteredUsernameAndPassword[1] = enteredPassword;
+
+        return enteredUsernameAndPassword;
+    }
+
+    public static String[] signup() {
+        JTextField username = new JTextField();
+        JTextField password = new JTextField();
+        JTextField firstName = new JTextField();
+        JTextField lastName = new JTextField();
+        JTextField isPublic = new JTextField();
+        JTextField bio = new JTextField();
+        JTextField interests = new JTextField();
+
+        Object[] userAndPass = {
+                "Username:", username,
+                "Password:", password,
+                "First Name: ", firstName,
+                "Last Name: ", lastName,
+                "Public? (true or false)", isPublic,
+                "Bio: ", bio,
+                "Interests: ", interests
+        };
+
+        JOptionPane.showConfirmDialog(null, userAndPass,
+                "BaceDoge", JOptionPane.DEFAULT_OPTION);
+
+
+        String[] enteredCredentials = new String[7];
+        enteredCredentials[0] = username.getText();
+        enteredCredentials[1] = password.getText();
+        enteredCredentials[2] = firstName.getText();
+        enteredCredentials[3] = lastName.getText();
+        enteredCredentials[4] = isPublic.getText();
+        enteredCredentials[5] = bio.getText();
+        enteredCredentials[6] = interests.getText();
+
+        return enteredCredentials;
+    }
+
+
+    public static void main(String[] args) {
+        try {
+            Socket socket = new Socket("localhost", 4242);
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            writer = new PrintWriter(socket.getOutputStream());
+            writer.write("Hello");
+            writer.println();
+            writer.flush();
+
+            writer.write("Hello");
+            writer.println();
+            writer.flush();
+
+
+            JFrame frame = new JFrame("Frame");
+            Container content = frame.getContentPane();
+            content.setLayout(new BorderLayout());
+
+            loginButton = new JButton("Login");
+            loginButton.addActionListener(actionListener);
+                    /*
+                    new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    userInputs = login();
+                    sendToServer(String.format("LOGIN %s, %s", userInputs[0], userInputs[1]), writer);
+
+                    System.out.println(String.format("LOGIN %s, %s", userInputs[0], userInputs[1]));
+                }
+            });
+
+                     */
+
+            signupButton = new JButton("Signup");
+            signupButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    userInputs = signup();
+                    writer.write(String.format("CREATE %s, %s, %s, %s, %s, %s, %s", userInputs[0], userInputs[1],
+                            userInputs[2], userInputs[3], userInputs[4], userInputs[5], userInputs[6]));
+                    writer.println();
+                    writer.flush();
+
+                    System.out.println(String.format("CREATE %s, %s, %s, %s, %s, %s, %s", userInputs[0], userInputs[1],
+                            userInputs[2], userInputs[3], userInputs[4], userInputs[5], userInputs[6]));
+                }
+            });
+
+            writer.write("Hello");
+            writer.println();
+            writer.flush();
+
+            JPanel centerPanel = new JPanel();
+            centerPanel.add(loginButton);
+            centerPanel.add(signupButton);
+            content.add(centerPanel, BorderLayout.CENTER);
+
+
+            frame.setSize(600, 400);
+            frame.setLocationRelativeTo(null);
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setVisible(true);
+
+            writer.close();
+            reader.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            /*
+            JOptionPane.showMessageDialog(null,
+                    "Connection could not be established.", "BaceDoge",
+                    JOptionPane.ERROR_MESSAGE);
+
+             */
+        }
+    }
+
+    /*
+    public static String[] login() {
+        JTextField username = new JTextField();
+        JTextField password = new JTextField();
+
+        Object[] userAndPass = {
+                "Username:", username,
+                "Password:", password
+        };
+
+        JOptionPane.showConfirmDialog(null, userAndPass,
+                "BaceDoge", JOptionPane.DEFAULT_OPTION);
+
+        String enteredUsername = username.getText();
+        String enteredPassword = password.getText();
+
+        String[] enteredUsernameAndPassword = new String[2];
+        enteredUsernameAndPassword[0] = enteredUsername;
+        enteredUsernameAndPassword[1] = enteredPassword;
+
+        return enteredUsernameAndPassword;
+    }
+
+    public static String[] signup() {
+        JTextField username = new JTextField();
+        JTextField password = new JTextField();
+        JTextField firstName = new JTextField();
+        JTextField lastName = new JTextField();
+        JTextField isPublic = new JTextField();
+        JTextField bio = new JTextField();
+        JTextField interests = new JTextField();
+
+        Object[] userAndPass = {
+                "Username:", username,
+                "Password:", password,
+                "First Name: ", firstName,
+                "Last Name: ", lastName,
+                "Public? (true or false)", isPublic,
+                "Bio: ", bio,
+                "Interests: ", interests
+        };
+
+        JOptionPane.showConfirmDialog(null, userAndPass,
+                "BaceDoge", JOptionPane.DEFAULT_OPTION);
+
+
+        String[] enteredCredentials = new String[7];
+        enteredCredentials[0] = username.getText();
+        enteredCredentials[1] = password.getText();
+        enteredCredentials[2] = firstName.getText();
+        enteredCredentials[3] = lastName.getText();
+        enteredCredentials[4] = isPublic.getText();
+        enteredCredentials[5] = bio.getText();
+        enteredCredentials[6] = interests.getText();
+
+        return enteredCredentials;
+    }
+
+     */
+
+    public static void sendToServer(String message, PrintWriter writer) {
+        writer.write(message);
+        writer.println();
+        writer.flush();
+    }
+
+}
