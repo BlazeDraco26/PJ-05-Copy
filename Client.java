@@ -68,6 +68,48 @@ public class Client {
 				oos.flush();
 				Boolean o = (Boolean) ois.readObject();
 				System.out.println(o);
+			} else if (command.equalsIgnoreCase("DELETE_ACCOUNT")) {
+				oos.writeObject(args[1].toUpperCase());
+				oos.writeObject(args[2]);
+				oos.flush();
+				Boolean o = (Boolean) ois.readObject();
+				System.out.println(o);
+			} else if (command.equalsIgnoreCase("CREATE_PROFILE")) {
+				oos.writeObject(args[1].toUpperCase());
+				oos.writeObject(args[2]);
+				oos.writeObject(args[3]);
+				oos.writeObject(args[4]);
+				oos.writeObject(args[5]);
+				oos.writeObject(args[6]);
+				oos.writeObject(args[7]);
+				oos.flush();
+				Object o = ois.readObject();
+				if (o == null) {
+					System.out.println("Unable to create profile.");
+				} else {
+					System.out.println((Account) o);
+				}
+			} else if (command.equalsIgnoreCase("EDIT_PROFILE")) {
+				oos.writeObject(args[1].toUpperCase());
+				oos.writeObject(args[2]);
+				oos.writeObject(args[3]);
+				oos.writeObject(args[4]);
+				oos.writeObject(args[5]);
+				oos.writeObject(args[6]);
+				oos.writeObject(args[7]);
+				oos.flush();
+				Object o = ois.readObject();
+				if (o == null) {
+					System.out.println("Unable to edit profile.");
+				} else {
+					System.out.println((Account) o);
+				}
+			} else if (command.equalsIgnoreCase("DELETE_PROFILE")) {
+				oos.writeObject(args[1].toUpperCase());
+				oos.writeObject(args[2]);
+				oos.flush();
+				Boolean o = (Boolean) ois.readObject();
+				System.out.println(o);
 			}
 			oos.close();
 			ois.close();
