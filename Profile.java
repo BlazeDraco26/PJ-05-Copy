@@ -1,3 +1,4 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
@@ -7,7 +8,7 @@ import java.util.ArrayList;
  * @author Saketh
  * @version 04/20/21
  */
-public class Profile {
+public class Profile implements Serializable {
     private String firstName; // stores the first name
     private String lastName; // stores the last name
     private String isPublic; //whether the account is public or not
@@ -88,7 +89,15 @@ public class Profile {
     // check friends - cannot have duplicate usernames in friends list, cannot remove a friend you don't have
 
 
-
-
-
+    @Override
+    public String toString() {
+        return "Profile{" +
+            "firstName='" + firstName + '\'' +
+            ", lastName='" + lastName + '\'' +
+            ", isPublic='" + isPublic + '\'' +
+            ", bio='" + bio + '\'' +
+            ", interests='" + interests + '\'' +
+            ", friendsList=" + friendsList +
+            '}';
+    }
 }

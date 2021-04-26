@@ -1,6 +1,7 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Account {
+public class Account implements Serializable {
     private String username;
     private String password;
     private Profile profile;
@@ -39,5 +40,15 @@ public class Account {
 
     public void setProfile(Profile profile) {
         this.profile = profile;
+    }
+
+    @Override
+    public String toString() {
+        return "Account{" +
+            "username='" + username + '\'' +
+            ", password='" + password + '\'' +
+            ", profile=" + profile +
+            ", friendRequests=" + friendRequests +
+            '}';
     }
 }
