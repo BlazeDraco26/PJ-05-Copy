@@ -2,42 +2,81 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
 
 
-public class Server {
+public class Server extends Thread {
+
+    public static final String CREATE_ACCOUNT = "CREATE_ACCOUNT";
+    public static final String LOGIN_ACCOUNT = "LOGIN_ACCOUNT";
+    public static final String GET_ALL_ACCOUNTS = "GET_ALL_ACCOUNTS";
+
+    public static final int DEFAULT_PORT = 8080;
     private ArrayList<Account> accounts;
+    private int port;
 
-    public static void main(String[] args) {
+    public Server(int port) {
+        this.port = port;
+        accounts = new ArrayList<Account>();
+    }
+
+    @Override
+    public void run() {
         try {
-            ServerSocket serverSocket = new ServerSocket(4242);
+            ServerSocket serverSocket = new ServerSocket(port);
 
-            System.out.println("Waiting for the client to connect...");
-            Socket socket = serverSocket.accept();
-            System.out.println("Client connected!");
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter writer = new PrintWriter(socket.getOutputStream());
-            String message = "";
-            message = reader.readLine();
             while (true) {
-                if (message != null) {
-                    System.out.printf("Received from client:\n%s\n", message);
-                    message = reader.readLine();
-                    System.out.println(message);
+                System.out.println("Waiting for the client to connect...");
+                Socket socket = serverSocket.accept();
+                System.out.println("Client connected!");
+
+                ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+                ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                String command = (String) ois.readObject();
+                switch (command) {
+                    case CREATE_ACCOUNT: // create account and returns the Account, if successful
+                        Account account = null;
+                        try {
+                            account = createAccount((String) ois.readObject(), (String) ois.readObject());
+                        } catch (ExistingAccountException e) {
+                            System.out.println(e.getMessage());
+                        }
+                        oos.writeObject(account);
+                        break;
+                    case LOGIN_ACCOUNT: // login to account returns the Account, if successful
+                        String username = (String) ois.readObject();
+                        if (checkPassword(username, (String) ois.readObject())) {
+                            oos.writeObject(findAccount(username));
+                        } else {
+                            oos.writeObject(null);
+                        }
+                        break;
+                    case GET_ALL_ACCOUNTS:
+                        oos.writeObject(getAllAccounts());
+                        break;
+
+                    default:
+                        System.out.println("Unknown command: " + command);
                 }
 
+                ois.close();
+                oos.close();
+//                socket.close();
             }
 //            writer.close();
 //            reader.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println("Server exiting");
     }
 
-    public Server() {
-        accounts = new ArrayList<Account>();
+    public static void main(String[] args) {
+        new Server(args.length == 0 ? DEFAULT_PORT : Integer.parseInt(args[0]))
+            .run();
+    }
+
+    public ArrayList<Account> getAllAccounts() {
+        return this.accounts;
     }
 
     // creates a new account object and adds it to the account ArrayList
@@ -101,7 +140,7 @@ public class Server {
     }
 
     // creates a new profile
-    public void createProfile(Account account, String firstName, String lastName, boolean isPublic, String bio, String interests, ArrayList <String> friendsList) {
+    public void createProfile(Account account, String firstName, String lastName, String isPublic, String bio, String interests, ArrayList <String> friendsList) {
         for (int i = 0; i < firstName.length(); i++) {
             if (!Character.isLowerCase(firstName.charAt(i)) && !Character.isUpperCase(firstName.charAt(i))) {
                 throw new IllegalArgumentException();
@@ -139,7 +178,7 @@ public class Server {
         }
     }
 
-    public void changePrivacy(String username, boolean isPublic) {
+    public void changePrivacy(String username, String isPublic) {
         Account account = findAccount(username);
         if (account != null) {
             account.getProfile().setIsPublic(isPublic);
