@@ -29,7 +29,7 @@ public class Client {
 				print(accounts);
 			} else if (command.equalsIgnoreCase(Server.CREATE_ACCOUNT)) {
 //				oos.writeObject(String.format("%s %s, %s", args[1].toUpperCase(), args[2], args[3]));
-				oos.writeObject(args[1].toUpperCase());
+				oos.writeObject(args[1].toUpperCase()); // command
 				oos.writeObject(args[2]);
 				oos.writeObject(args[3]);
 				oos.flush();
@@ -61,6 +61,13 @@ public class Client {
 				} else {
 					print((List<Account>) o);
 				}
+			} else if (command.equalsIgnoreCase("CHANGE_PASSWORD")) {
+				oos.writeObject(args[1].toUpperCase());
+				oos.writeObject(args[2]);
+				oos.writeObject(args[3]);
+				oos.flush();
+				Boolean o = (Boolean) ois.readObject();
+				System.out.println(o);
 			}
 			oos.close();
 			ois.close();

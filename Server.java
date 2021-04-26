@@ -8,6 +8,7 @@ public class Server extends Thread {
 
     public static final String CREATE_ACCOUNT = "CREATE_ACCOUNT";
     public static final String LOGIN_ACCOUNT = "LOGIN_ACCOUNT";
+    public static final String CHANGE_PASSWORD = "CHANGE_PASSWORD";
     public static final String GET_ALL_ACCOUNTS = "GET_ALL_ACCOUNTS";
 
     public static final int DEFAULT_PORT = 8080;
@@ -53,7 +54,16 @@ public class Server extends Thread {
                     case GET_ALL_ACCOUNTS:
                         oos.writeObject(getAllAccounts());
                         break;
-
+                    case CHANGE_PASSWORD:
+                        username = (String) ois.readObject();
+                        String newPassword = (String) ois.readObject();
+                        if (checkPassword(username, newPassword)) {
+                            oos.writeObject(false);
+                        } else {
+                            changePassword(username, newPassword);
+                            oos.writeObject(true);
+                        }
+                        break;
                     default:
                         System.out.println("Unknown command: " + command);
                 }
