@@ -10,6 +10,10 @@ public class Server extends Thread {
     public static final String LOGIN_ACCOUNT = "LOGIN_ACCOUNT";
     public static final String CHANGE_PASSWORD = "CHANGE_PASSWORD";
     public static final String GET_ALL_ACCOUNTS = "GET_ALL_ACCOUNTS";
+    public static final String DELETE_ACCOUNT = "DELETE_ACCOUNT";
+    public static final String CREATE_PROFILE = "CREATE_PROFILE";
+    public static final String EDIT_PROFILE = "EDIT_PROFILE";
+    public static final String DELETE_PROFILE = "DELETE_PROFILE";
 
     public static final int DEFAULT_PORT = 8080;
     private ArrayList<Account> accounts;
@@ -64,6 +68,54 @@ public class Server extends Thread {
                             oos.writeObject(true);
                         }
                         break;
+                    case DELETE_ACCOUNT:
+                        username = (String) ois.readObject();
+                        account = findAccount(username);
+                        if (account == null) {
+                            oos.writeObject(false);
+                        } else {
+                            deleteAccount(username);
+                            oos.writeObject(true);
+                        }
+                    case CREATE_PROFILE:
+                        username = (String) ois.readObject();
+                        account = findAccount(username);
+                        String firstName = (String) ois.readObject();
+                        String lastName = (String) ois.readObject();
+                        String isPublic = (String) ois.readObject();
+                        String bio = (String) ois.readObject();
+                        String interests = (String) ois.readObject();
+                        boolean profileCreated = createProfile(username, firstName, lastName, isPublic, bio, interests, null);
+                        if (profileCreated) {
+                            oos.writeObject(account);
+                        } else {
+                            oos.writeObject(null);
+                        }
+                        break;
+                    case EDIT_PROFILE:
+                        username = (String) ois.readObject();
+                        account = findAccount(username);
+                        firstName = (String) ois.readObject();
+                        lastName = (String) ois.readObject();
+                        isPublic = (String) ois.readObject();
+                        bio = (String) ois.readObject();
+                        interests = (String) ois.readObject();
+                        boolean profileUpdated = editProfile(username, firstName, lastName, isPublic, bio, interests, null);
+                        if (profileUpdated) {
+                            oos.writeObject(account);
+                        } else {
+                            oos.writeObject(null);
+                        }
+                        break;
+                    case DELETE_PROFILE:
+                        username = (String) ois.readObject();
+                        account = findAccount(username);
+                        if (account == null) {
+                            oos.writeObject(false);
+                        } else {
+                            deleteProfile(username);
+                            oos.writeObject(true);
+                        }
                     default:
                         System.out.println("Unknown command: " + command);
                 }
@@ -150,42 +202,53 @@ public class Server extends Thread {
     }
 
     // creates a new profile
-    public void createProfile(Account account, String firstName, String lastName, String isPublic, String bio, String interests, ArrayList <String> friendsList) {
+    // TODO: cannot create duplicate profile
+    public boolean createProfile(String username, String firstName, String lastName, String isPublic, String bio, String interests, ArrayList <String> friendsList) {
         for (int i = 0; i < firstName.length(); i++) {
             if (!Character.isLowerCase(firstName.charAt(i)) && !Character.isUpperCase(firstName.charAt(i))) {
-                throw new IllegalArgumentException();
+                return false;
             }
         }
         for (int i = 0; i < lastName.length(); i++) {
             if (!Character.isLowerCase(lastName.charAt(i)) && !Character.isUpperCase(lastName.charAt(i))) {
-                throw new IllegalArgumentException();
+                return false;
             }
         }
-        account.setProfile(new Profile(firstName, lastName, isPublic, bio, interests, friendsList));
+        Account account = findAccount(username);
+        if (account != null) {
+            account.setProfile(new Profile(firstName, lastName, isPublic, bio, interests, friendsList));
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    public void changeFirstName(String username, String firstName) {
+    public boolean changeFirstName(String username, String firstName) {
         for (int i = 0; i < firstName.length(); i++) {
             if (!Character.isLowerCase(firstName.charAt(i)) && !Character.isUpperCase(firstName.charAt(i))) {
-                throw new IllegalArgumentException();
+                return false;
             }
         }
         Account account = findAccount(username);
-        if (account != null) {
-            account.getProfile().setFirstName(firstName);
+        if (account == null) {
+            return false;
         }
+        account.getProfile().setFirstName(firstName);
+        return true;
     }
 
-    public void changeLastName(String username, String lastName) {
+    public boolean changeLastName(String username, String lastName) {
         for (int i = 0; i < lastName.length(); i++) {
             if (!Character.isLowerCase(lastName.charAt(i)) && !Character.isUpperCase(lastName.charAt(i))) {
-                throw new IllegalArgumentException();
+                return false;
             }
         }
         Account account = findAccount(username);
-        if (account != null) {
-            account.getProfile().setLastName(lastName);
+        if (account == null) {
+            return false;
         }
+        account.getProfile().setLastName(lastName);
+        return true;
     }
 
     public void changePrivacy(String username, String isPublic) {
@@ -207,6 +270,16 @@ public class Server extends Thread {
         if (account != null) {
             account.getProfile().setInterests(interests);
         }
+    }
+
+    public boolean editProfile(String username, String firstName, String lastName, String isPublic, String bio, String interests, ArrayList <String> friendsList) {
+        if (!changeFirstName(username, firstName) || !changeLastName(username, lastName)) {
+            return false;
+        }
+        changePrivacy(username, isPublic);
+        editBio(username, bio);
+        editInterests(username, interests);
+        return true;
     }
 
     public void deleteProfile(String username) {
